@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta charset="utf-8">
+    <style type="text/css">
+        html { height: 100%; }
+        body { height: 100%; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        #map-canvas { height: 100%; width: 100%; background: #eee; }
+        .button-controls { position: absolute; top: 10px; right: 10px; z-index: 1000; }
+        .map-buttons { display: block; }
+        .map-control-item { display: inline-block; margin-left: 5px; }
+        .map-btn {
+            display: inline-block; padding: 6px 12px; background: #fff; color: #333;
+            border: 1px solid #999; text-decoration: none; font-size: 13px; cursor: pointer;
+        }
+        .map-btn.selected { background: #333; color: #fff; }
+    </style>
+    <link href="../javascript/leaflet/leaflet.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../javascript/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="../javascript/leaflet/leaflet.js"></script>
+    <script type="text/javascript" src="javascript/Track.js"></script>
+    <script type="text/javascript" src="../javascript/TrackIntf.js"></script>
+    <script type="text/javascript">
+        var mMap = null;
+        var mTrack = null;
+        var mRoadLayer = null;
+        var mSatLayer = null;
+        var mCurrentType = "map";
+
+        $(document).ready(function()
+        {
+            try
+            {
+                mMap = L.map("map-canvas", { center: [0, 0], zoom: 1, zoomControl: true });
+            }
+            catch (e)
+            {
+                // IE fallback delay
+                setTimeout(function() {
+                    mMap = L.map("map-canvas").setView([0, 0], 1);
+                    initLayers();
+                }, 100);
+                return;
+            }
+            initLayers();
+        });
+
+        function initLayers()
+        {
+            mRoadLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; OpenStreetMap",
+                maxZoom: 19,
+                subdomains: "abc"
+            });
+            mSatLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+                attribution: "Esri",
+                maxZoom: 19
+            });
+            mRoadLayer.addTo(mMap);
+            try { document.documentElement.style.overflow = "hidden"; } catch (e) {}
+            try { MapDidInitialize(); } catch (e) {}
+        }
+
+        function SetMapControlTitlesInternal(aMapTitle, aRoad, aBirdsEye)
+        {
+            try
+            {
+                if (aRoad) { $("#road-map-title").text(aRoad); }
+                if (aBirdsEye) { $("#birdseye-map-title").text(aBirdsEye); }
+            }
+            catch (e) {}
+        }
+
+        function SetMapTypeInternal(aMapType)
+        {
+            try
+            {
+                if (!mMap) { return; }
+                var t = ("" + aMapType).toLowerCase();
+                if (t === "satellite" || t === "aerial" || t === "birdseye")
+                {
+                    if (mRoadLayer && mMap.hasLayer(mRoadLayer)) { mMap.removeLayer(mRoadLayer); }
+                    if (mSatLayer && !mMap.hasLayer(mSatLayer)) { mSatLayer.addTo(mMap); }
+                    mCurrentType = "satellite";
+                    $("#button-type-road").removeClass("selected");
+                    $("#button-type-birdseye").addClass("selected");
+                }
+                else
+                {
+                    if (mSatLayer && mMap.hasLayer(mSatLayer)) { mMap.removeLayer(mSatLayer); }
+                    if (mRoadLayer && !mMap.hasLayer(mRoadLayer)) { mRoadLayer.addTo(mMap); }
+                    mCurrentType = "map";
+                    $("#button-type-road").addClass("selected");
+                    $("#button-type-birdseye").removeClass("selected");
+                }
+            }
+            catch (e) {}
+        }
+
+        $(function ()
+        {
+            $(".map-select-button").click(function ()
+            {
+                var id = $(this).attr("id");
+                if (id === "button-type-road")
+                {
+                    SetMapTypeInternal("map");
+                    try { MapTypeChanged("map"); } catch (e) {}
+                }
+                else
+                {
+                    SetMapTypeInternal("satellite");
+                    try { MapTypeChanged("satellite"); } catch (e) {}
+                }
+                return false;
+            });
+        });
+    </script>
+</head>
+<body oncontextmenu="return false" style="margin: 0px">
+    <div class="button-controls" id="map-type-select-control">
+        <div class="map-buttons">
+            <div class="map-control-item map-select">
+                <a class="map-btn map-select-button selected" href="#" id="button-type-road"><span id="road-map-title">Map</span></a>
+            </div>
+            <div class="map-control-item map-select">
+                <a class="map-btn map-select-button" href="#" id="button-type-birdseye"><span id="birdseye-map-title">Satellite</span></a>
+            </div>
+        </div>
+    </div>
+    <div id="map-canvas"></div>
+</body>
+</html>

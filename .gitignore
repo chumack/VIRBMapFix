@@ -1,0 +1,3 @@
+# VIRBMapFix runtime leftovers (created on installed machines, not in repo)
+server.log
+*.log
