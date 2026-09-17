@@ -30,13 +30,25 @@ $mime = @{
 $listener = New-Object System.Net.HttpListener
 # Loopback only: enough because hosts maps the CDN name to 127.0.0.1.
 # Installer adds urlacl reservations so no admin rights are needed at runtime.
-$listener.Prefixes.Add("http://127.0.0.1:$Port/")
-$listener.Prefixes.Add("http://localhost:$Port/")
-$listener.Prefixes.Add("http://[::1]:$Port/")
-try {
-    $listener.Start()
-} catch {
-    Log("FAILED to listen on port ${Port}: $($_.Exception.Message)")
+# NOTE: [::1] may lack a reservation on some machines -> retry without it.
+$prefixSets = @(
+    @("http://127.0.0.1:$Port/", "http://localhost:$Port/", "http://[::1]:$Port/"),
+    @("http://127.0.0.1:$Port/", "http://localhost:$Port/")
+)
+$started = $false
+foreach ($set in $prefixSets) {
+    $listener.Prefixes.Clear()
+    foreach ($prefix in $set) { $listener.Prefixes.Add($prefix) }
+    try {
+        $listener.Start()
+        $started = $true
+        break
+    } catch {
+        Log("FAILED prefixes $($set -join ','): $($_.Exception.Message)")
+    }
+}
+if (-not $started) {
+    Log("FAILED to listen on port ${Port}: giving up")
     exit 1
 }
 Log("Serving $Root on port $Port (proxy fallback $RealIp)")

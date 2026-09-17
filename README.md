@@ -8,7 +8,8 @@
 > IE11-compatible [Leaflet](https://leafletjs.com/) replacement
 > (OpenStreetMap + Esri World Imagery) instead of Google Maps, keeping the
 > original JS bridge so G-Metrix track sync keeps working. No Python needed,
-> pure PowerShell. See [README-EN](#english) below for details.
+> pure PowerShell. The local server runs only while VIRB Edit is open
+> (shortcuts are repointed to a hidden launcher, no background task). See [README-EN](#english) below for details.
 
 ## Почему ломается
 
@@ -27,8 +28,24 @@ Google Maps API `v=3.12` во встроенном IE. Google прекратил
    маркера и т.д.) сохранён 1:1, синхронизация G-Metrix работает.
 3. `hosts`: `127.0.0.1 static.garmincdn.com` (VIRB просит карту по `http`,
    сертификаты не нужны; остальной контент CDN проксируется).
-4. Локальный HTTP-сервер (PowerShell, без зависимостей) на `127.0.0.1:80`
-   с автозапуском через планировщик задач `VIRBMapFix`.
+4. Локальный HTTP-сервер (PowerShell, без зависимостей) на `127.0.0.1:80`,
+   который работает **только пока открыт VIRB Edit**: установщик
+   переписывает ярлыки VIRB Edit (меню Пуск, рабочие столы, панель задач)
+   на скрытый лаунчер — запуск программы сначала поднимает сервер, а после
+   закрытия последнего окна VIRB Edit сервер останавливается. Фоновой
+   задачи в планировщике и окон PowerShell при загрузке Windows нет.
+
+## История версий
+
+* **v1.2** — отказ от IFEO-перехвата (отладчик перехватывал и запуск из
+  самого лаунчера — рекурсия, программа не стартовала) в пользу
+  переписанных ярлыков.
+
+* **v1.1** — запуск сервера по требованию (IFEO-лаунчер вместо задачи
+  планировщика с автозапуском при загрузке); фиксы: пустой `-ArgumentList`
+  в лаунчере, fallback префиксов `HttpListener` без `[::1]`, резервация
+  `urlacl` для `[::1]:80`, права на лог-файлы.
+* **v1.0** — первый выпуск (сервер висел в фоне через задачу `VIRBMapFix`).
 
 ## Установка
 
@@ -38,7 +55,7 @@ Google Maps API `v=3.12` во встроенном IE. Google прекратил
 4. Полностью закройте VIRB Edit (если был открыт) и откройте заново.
 5. Откройте G-Metrix журнал — карта должна появиться.
 
-Быстрая проверка без VIRB Edit (в Edge/Chrome):
+Быстрая проверка (карта доступна, только пока открыт VIRB Edit):
 
 ```text
 http://static.garmincdn.com/desktop-chandler/virbedit/maps/v8/google/index.html
@@ -57,9 +74,13 @@ http://static.garmincdn.com/desktop-chandler/virbedit/maps/v8/google/index.html
 ## Файлы после установки
 
 ```text
-C:\ProgramData\VIRBMapFix\server.ps1   — сервер
-C:\ProgramData\VIRBMapFix\www\...      — страницы карты
-C:\ProgramData\VIRBMapFix\server.log   — лог запросов
+C:\ProgramData\VIRBMapFix\server.ps1            — сервер
+C:\ProgramData\VIRBMapFix\VirbEdit-Launcher.ps1 — лаунчер «сервер только пока открыт VIRB Edit»
+C:\ProgramData\VIRBMapFix\VirbEdit-Launcher.vbs — скрытый вход лаучера (цель переписанных ярлыков)
+C:\ProgramData\VIRBMapFix\Repair-Shortcuts.ps1  — переписывание/возврат ярлыков VIRB Edit
+C:\ProgramData\VIRBMapFix\www\...               — страницы карты
+C:\ProgramData\VIRBMapFix\server.log            — лог запросов сервера
+C:\ProgramData\VIRBMapFix\launcher.log          — лог запусков/остановок сервера
 ```
 
 ## English
@@ -72,7 +93,9 @@ is not enough (`marker.js` / `controls.js` errors, no draggable marker).
 
 **Fix:** serve a local IE11-compatible Leaflet map (OpenStreetMap road +
 Esri satellite) in place of the remote Google page, preserving the original
-JS bridge (`window.external.*`), so track sync works again.
+JS bridge (`window.external.*`), so track sync works again. The server
+starts on demand with VIRB Edit (rewritten shortcuts launch a hidden
+launcher first) and stops when it closes — no autostart task, no console windows.
 
 **Install:** download the zip from Releases, run `install.bat` as admin,
 restart VIRB Edit. **Uninstall:** run `uninstall.bat`.

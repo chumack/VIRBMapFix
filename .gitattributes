@@ -1,0 +1,4 @@
+# Batch files must keep CRLF endings everywhere (blobs included):
+# cmd.exe cannot execute LF-only .bat files from release zips.
+# (-text = no EOL conversion, diff = still show text diffs)
+*.bat -text diff
