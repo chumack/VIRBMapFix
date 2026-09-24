@@ -27,7 +27,7 @@ if (-not (Test-Path $LauncherExeSrc)) {
         if (Test-Path $c) { $csc = $c; break }
     }
     if (-not $csc) { throw 'VirbEdit-Launcher.exe not found, csc.exe missing (needs .NET Framework 4.x)' }
-    & $csc /nologo /optimize+ /target:winexe /out:$LauncherExeSrc $cs
+    & $csc /nologo /optimize+ /target:winexe /out:"$LauncherExeSrc" "$cs"
     if ($LASTEXITCODE -ne 0) { throw 'Failed to compile VirbEdit-Launcher.exe' }
 }
 Copy-Item $LauncherExeSrc (Join-Path $Target 'VirbEdit-Launcher.exe') -Force
