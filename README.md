@@ -8,7 +8,7 @@
 > IE11-compatible [Leaflet](https://leafletjs.com/) replacement
 > (OpenStreetMap + Esri World Imagery) instead of Google Maps, keeping the
 > original JS bridge so G-Metrix track sync keeps working. No Python needed,
-> pure PowerShell. The local server runs only while VIRB Edit is open
+> pure PowerShell + a tiny native launcher (no VBScript). The local server runs only while VIRB Edit is open
 > (shortcuts are repointed to a hidden launcher, no background task). See [README-EN](#english) below for details.
 
 ## Почему ломается
@@ -36,6 +36,13 @@ Google Maps API `v=3.12` во встроенном IE. Google прекратил
    задачи в планировщике и окон PowerShell при загрузке Windows нет.
 
 ## История версий
+
+* **v1.3** — отказ от VBScript (`VirbEdit-Launcher.vbs` удалён: VBScript
+  deprecated в Windows): скрытый запуск через нативный
+  `VirbEdit-Launcher.exe` (C#, сборка штатным `csc.exe`, см.
+  `src/`); ярлыки читаются/пишутся через `IShellLink` без `WScript.Shell`,
+  ошибки показываются через `MessageBox`. Ярлыки от v1.2 мигрируют
+  автоматически.
 
 * **v1.2** — отказ от IFEO-перехвата (отладчик перехватывал и запуск из
   самого лаунчера — рекурсия, программа не стартовала) в пользу
@@ -76,7 +83,7 @@ http://static.garmincdn.com/desktop-chandler/virbedit/maps/v8/google/index.html
 ```text
 C:\ProgramData\VIRBMapFix\server.ps1            — сервер
 C:\ProgramData\VIRBMapFix\VirbEdit-Launcher.ps1 — лаунчер «сервер только пока открыт VIRB Edit»
-C:\ProgramData\VIRBMapFix\VirbEdit-Launcher.vbs — скрытый вход лаучера (цель переписанных ярлыков)
+C:\ProgramData\VIRBMapFix\VirbEdit-Launcher.exe — скрытый вход лаучера (цель переписанных ярлыков, без VBScript)
 C:\ProgramData\VIRBMapFix\Repair-Shortcuts.ps1  — переписывание/возврат ярлыков VIRB Edit
 C:\ProgramData\VIRBMapFix\www\...               — страницы карты
 C:\ProgramData\VIRBMapFix\server.log            — лог запросов сервера
@@ -107,4 +114,4 @@ restart VIRB Edit. **Uninstall:** run `uninstall.bat`.
 - Картографические данные © [OpenStreetMap](https://www.openstreetmap.org/copyright),
   спутниковые снимки © Esri
 - Оригинальные `TrackIntf.js` и иконки маркеров — Garmin
-- Собственный код патча (`server.ps1`, `Track.js`, установщик) — MIT (см. `LICENSE`)
+- Собственный код патча (`server.ps1`, `VirbEdit-Launcher.cs`, `Track.js`, установщик) — MIT (см. `LICENSE`)

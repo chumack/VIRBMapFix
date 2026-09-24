@@ -1,6 +1,6 @@
 # VIRBMapFix on-demand launcher, part 2.
 # Starts the local map server only while VIRB Edit is running, then stops it.
-# Called from VirbEdit-Launcher.vbs (shortcuts rewritten by the installer):
+# Called from VirbEdit-Launcher.exe (shortcuts rewritten by the installer):
 #   first argument = real VirbEdit.exe path, the rest = passthrough args.
 # Called with no arguments (manual start) it uses the default install path.
 param(
@@ -43,7 +43,10 @@ function Stop-OwnServer {
 
 function Show-Fatal([string]$text) {
     Write-LauncherLog("ERROR $text")
-    try { (New-Object -ComObject WScript.Shell).Popup($text, 0, 'VIRBMapFix', 16) | Out-Null } catch {}
+    try {
+        Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+        [System.Windows.Forms.MessageBox]::Show($text, 'VIRBMapFix', 'OK', 'Error') | Out-Null
+    } catch {}
 }
 
 # NOTE: -ArgumentList must be omitted (not @()) when there are no args:
