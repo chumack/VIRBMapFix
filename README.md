@@ -6,7 +6,7 @@
 > **EN summary:** VIRB Edit renders its sync map with the legacy Internet Explorer
 > engine, which Google Maps no longer supports. This patch serves a local
 > IE11-compatible [Leaflet](https://leafletjs.com/) replacement
-> (OpenStreetMap + Esri World Imagery) instead of Google Maps, keeping the
+> (CyclOSM streets + Esri World Imagery with labels, zoom up to 22) instead of Google Maps, keeping the
 > original JS bridge so G-Metrix track sync keeps working. No Python needed,
 > pure PowerShell + a tiny native launcher (no VBScript). The local server runs only while VIRB Edit is open
 > (shortcuts are repointed to a hidden launcher, no background task). See [README-EN](#english) below for details.
@@ -23,7 +23,8 @@ Google Maps API `v=3.12` во встроенном IE. Google прекратил
 
 1. Реестр `FEATURE_BROWSER_EMULATION`: `VirbEdit.exe = 0x2ee1` (режим IE11).
 2. Подменяет удалённую страницу карты локальной на Leaflet 1.7.1
-   (совместим с IE11) + OpenStreetMap / Esri World Imagery.
+   (совместим с IE11) + CyclOSM (улицы, зум до 20) / Esri World Imagery
+   с подписями (названия и дороги поверх снимков), приближение до 22.
    JS-мост с программой (`SetTrack`, `SetMarkerPosition`, перетаскивание
    маркера и т.д.) сохранён 1:1, синхронизация G-Metrix работает.
 3. `hosts`: `127.0.0.1 static.garmincdn.com` (VIRB просит карту по `http`,
@@ -36,6 +37,10 @@ Google Maps API `v=3.12` во встроенном IE. Google прекратил
    задачи в планировщике и окон PowerShell при загрузке Windows нет.
 
 ## История версий
+
+* **v1.4** — карта: улицы CyclOSM вместо OSM Standard, на спутник добавлены
+  подписи Esri (названия и дороги), приближение увеличено до 22
+  (дальше родного зума тайлов — растяжка Leaflet).
 
 * **v1.3** — отказ от VBScript (`VirbEdit-Launcher.vbs` удалён: VBScript
   deprecated в Windows): скрытый запуск через нативный
@@ -71,7 +76,7 @@ http://static.garmincdn.com/desktop-chandler/virbedit/maps/v8/google/index.html
 Должна открыться карта мира с кнопками Map / Satellite.
 
 Требования: Windows 10/11, права администратора на время установки,
-интернет (тайлы OSM/Esri грузятся из сети), свободный порт 80.
+интернет (тайлы CyclOSM/Esri грузятся из сети), свободный порт 80.
 
 ## Удаление
 
@@ -98,8 +103,8 @@ display Google Maps, which Google no longer supports — since Aug 2023 even
 the well-known registry workaround (`FEATURE_BROWSER_EMULATION = 0x2ee1`)
 is not enough (`marker.js` / `controls.js` errors, no draggable marker).
 
-**Fix:** serve a local IE11-compatible Leaflet map (OpenStreetMap road +
-Esri satellite) in place of the remote Google page, preserving the original
+**Fix:** serve a local IE11-compatible Leaflet map (CyclOSM streets +
+Esri satellite with labels, zoom up to 22) in place of the remote Google page, preserving the original
 JS bridge (`window.external.*`), so track sync works again. The server
 starts on demand with VIRB Edit (rewritten shortcuts launch a hidden
 launcher first) and stops when it closes — no autostart task, no console windows.
@@ -112,6 +117,7 @@ restart VIRB Edit. **Uninstall:** run `uninstall.bat`.
 - [Leaflet 1.7.1](https://leafletjs.com/) — BSD 2-Clause (`files/www/.../javascript/leaflet/`)
 - [jQuery 2.0.3](https://jquery.org/license/) — MIT (тот же файл, что раздаёт сам Garmin CDN)
 - Картографические данные © [OpenStreetMap](https://www.openstreetmap.org/copyright),
-  спутниковые снимки © Esri
+  стиль [CyclOSM](https://www.cyclosm.org/),
+  спутниковые снимки и подписи © Esri
 - Оригинальные `TrackIntf.js` и иконки маркеров — Garmin
 - Собственный код патча (`server.ps1`, `VirbEdit-Launcher.cs`, `Track.js`, установщик) — MIT (см. `LICENSE`)

@@ -27,13 +27,14 @@
         var mTrack = null;
         var mRoadLayer = null;
         var mSatLayer = null;
+        var mSatLabels = null;
         var mCurrentType = "map";
 
         $(document).ready(function()
         {
             try
             {
-                mMap = L.map("map-canvas", { center: [0, 0], zoom: 1, zoomControl: true });
+                mMap = L.map("map-canvas", { center: [0, 0], zoom: 1, zoomControl: true, maxZoom: 22 });
             }
             catch (e)
             {
@@ -49,15 +50,29 @@
 
         function initLayers()
         {
-            mRoadLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap",
-                maxZoom: 19,
+            mRoadLayer = L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", {
+                attribution: "&copy; OpenStreetMap, &copy; CyclOSM",
+                maxNativeZoom: 20,
+                maxZoom: 22,
                 subdomains: "abc"
             });
             mSatLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
                 attribution: "Esri",
-                maxZoom: 19
+                maxNativeZoom: 19,
+                maxZoom: 22
             });
+            mSatLabels = [
+                L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+                    attribution: "Esri",
+                    maxNativeZoom: 19,
+                    maxZoom: 22
+                }),
+                L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", {
+                    attribution: "Esri",
+                    maxNativeZoom: 19,
+                    maxZoom: 22
+                })
+            ];
             mRoadLayer.addTo(mMap);
             try { document.documentElement.style.overflow = "hidden"; } catch (e) {}
             try { MapDidInitialize(); } catch (e) {}
@@ -73,6 +88,27 @@
             catch (e) {}
         }
 
+        function showSatLabels(aShow)
+        {
+            try
+            {
+                if (!mMap || !mSatLabels) { return; }
+                var i;
+                for (i = 0; i < mSatLabels.length; i++)
+                {
+                    if (aShow)
+                    {
+                        if (!mMap.hasLayer(mSatLabels[i])) { mSatLabels[i].addTo(mMap); }
+                    }
+                    else
+                    {
+                        if (mMap.hasLayer(mSatLabels[i])) { mMap.removeLayer(mSatLabels[i]); }
+                    }
+                }
+            }
+            catch (e) {}
+        }
+
         function SetMapTypeInternal(aMapType)
         {
             try
@@ -83,12 +119,14 @@
                 {
                     if (mRoadLayer && mMap.hasLayer(mRoadLayer)) { mMap.removeLayer(mRoadLayer); }
                     if (mSatLayer && !mMap.hasLayer(mSatLayer)) { mSatLayer.addTo(mMap); }
+                    showSatLabels(true);
                     mCurrentType = "satellite";
                     $("#button-type-road").removeClass("selected");
                     $("#button-type-birdseye").addClass("selected");
                 }
                 else
                 {
+                    showSatLabels(false);
                     if (mSatLayer && mMap.hasLayer(mSatLayer)) { mMap.removeLayer(mSatLayer); }
                     if (mRoadLayer && !mMap.hasLayer(mRoadLayer)) { mRoadLayer.addTo(mMap); }
                     mCurrentType = "map";
